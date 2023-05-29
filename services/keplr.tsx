@@ -1,5 +1,5 @@
 import { convertFromMicroDenom } from "../util/keplr";
-import { noisChainConfig } from "./noisConfig";
+import { junoChainConfig } from "./noisConfig";
 
 // extend window with CosmJS and Keplr properties
 interface CosmosKeplrWindow extends Window {
@@ -18,8 +18,6 @@ export const connectKeplr = async () => {
     alert("Please install keplr extension");
   } else {
     if (window.keplr.experimentalSuggestChain) {
-      const stakingDenom = convertFromMicroDenom("unois");
-
       try {
         // Keplr v0.6.4 introduces an experimental feature that supports the feature to suggests the chain from a webpage.
         // cosmoshub-3 is integrated to Keplr so the code should return without errors.
@@ -27,7 +25,7 @@ export const connectKeplr = async () => {
         // If the user approves, the chain will be added to the user's Keplr extension.
         // If the user rejects it or the suggested chain information doesn't include the required fields, it will throw an error.
         // If the same chain id is already registered, it will resolve and not require the user interactions.
-        await window.keplr.experimentalSuggestChain(noisChainConfig);
+        await window.keplr.experimentalSuggestChain(junoChainConfig);
       } catch {
         alert("Failed to suggest the chain");
       }

@@ -9,7 +9,7 @@ import { GasPrice } from "@cosmjs/stargate/build/fee";
 import { toBase64, fromBase64, toUtf8, fromUtf8 } from "@cosmjs/encoding";
 import { HttpBatchClient, Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { QueryClient } from "@cosmjs/stargate";
-import { noisChainConfig } from "../services/noisConfig";
+import { junoChainConfig } from "../services/noisConfig";
 export interface ISigningCosmWasmClientContext {
   walletAddress: string;
   signingClient: SigningCosmWasmClient | null;
@@ -32,7 +32,7 @@ export const useSigningCosmWasmClient = (): ISigningCosmWasmClientContext => {
     setLoading(true);
 
     try {
-      const chainId = noisChainConfig.chainId;
+      const chainId = junoChainConfig.chainId;
       const keplr = await getKeplr();
       suggestChain();
 
@@ -42,13 +42,13 @@ export const useSigningCosmWasmClient = (): ISigningCosmWasmClientContext => {
       // get offline signer for signing txs
       const offlineSigner = await keplr.getOfflineSigner(chainId);
 
-      const endpoint = noisChainConfig.rpc;
+      const endpoint = junoChainConfig.rpc;
       const client = await SigningCosmWasmClient.connectWithSigner(
         endpoint,
         offlineSigner,
         {
           gasPrice: GasPrice.fromString(
-            `${noisChainConfig.feeCurrencies[0].gasPriceStep?.average}${noisChainConfig.currencies[0].coinMinimalDenom}`
+            `${junoChainConfig.feeCurrencies[0].gasPriceStep?.average}${junoChainConfig.currencies[0].coinMinimalDenom}`
           ),
         }
       );
@@ -92,7 +92,7 @@ export const useSigningCosmWasmClient = (): ISigningCosmWasmClientContext => {
 
 
 export const getBatchClient = async () => {
-  const endpoints = [noisChainConfig.rpc];
+  const endpoints = [junoChainConfig.rpc];
   const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
   const httpBatch = new HttpBatchClient(endpoint);
   const tmint = await Tendermint34Client.create(httpBatch);

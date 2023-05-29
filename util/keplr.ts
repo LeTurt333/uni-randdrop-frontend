@@ -1,5 +1,5 @@
 import { Keplr } from "@keplr-wallet/types";
-import { noisChainConfig } from "../services/noisConfig";
+import { noisChainConfig, junoChainConfig } from "../services/noisConfig";
 
 export function convertFromMicroDenom(denom: string) {
   return denom?.substring(1).toUpperCase();
@@ -44,60 +44,8 @@ export async function getKeplr(): Promise<Keplr> {
   return gotKeplr;
 }
 
+
 export async function suggestChain(): Promise<void> {
-  // const keplr = await getKeplr();
-  // const prefix = config("bech32Prefix");
-  // const coinDecimals = Number.parseInt(config("coinDecimals"));
-  // const coinMinimalDenom = config("coinDenom");
-  // const coinDenom = convertFromMicroDenom(coinMinimalDenom).toUpperCase();
   const keplr = await getKeplr();
-  //const prefix = config("bech32Prefix");
-  //const prefix = addressPrefix;
-  const prefix = noisChainConfig.bech32Config['bech32PrefixAccAddr'];
-  //const coinDecimals = Number.parseInt(config("coinDecimals"));
-  const coinDecimals = noisChainConfig.currencies[0].coinDecimals;
-  //const coinMinimalDenom = config("coinDenom");
-  const coinMinimalDenom = noisChainConfig.feeCurrencies[0].coinMinimalDenom;
-  const coinDenom = convertFromMicroDenom(coinMinimalDenom).toUpperCase();
-
-  await keplr.experimentalSuggestChain(noisChainConfig);
-
-  // await keplr.experimentalSuggestChain({
-  //   chainId: config("chainId"),
-  //   chainName: config("chainName"),
-  //   rpc: config("rpcEndpoint"),
-  //   rest: config("restEndpoint"),
-  //   bip44: {
-  //     coinType: 118,
-  //   },
-  //   bech32Config: {
-  //     bech32PrefixAccAddr: prefix,
-  //     bech32PrefixAccPub: `${prefix}pub`,
-  //     bech32PrefixValAddr: `${prefix}valoper`,
-  //     bech32PrefixValPub: `${prefix}valoperpub`,
-  //     bech32PrefixConsAddr: `${prefix}valcons`,
-  //     bech32PrefixConsPub: `${prefix}valconspub`,
-  //   },
-  //   currencies: [
-  //     {
-  //       coinDenom,
-  //       coinMinimalDenom,
-  //       coinDecimals,
-  //     },
-  //   ],
-  //   feeCurrencies: [
-  //     {
-  //       coinDenom,
-  //       coinMinimalDenom,
-  //       coinDecimals,
-  //     },
-  //   ],
-  //   stakeCurrency: {
-  //     coinDenom,
-  //     coinMinimalDenom,
-  //     coinDecimals,
-  //   },
-  //   coinType: CosmosCoinType,
-  //   //gasPriceStep: GasPrices,
-  // });
+  await keplr.experimentalSuggestChain(junoChainConfig);
 }

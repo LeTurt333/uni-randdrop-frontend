@@ -14,11 +14,8 @@ import { confetti, ConfettiFirstParam } from 'tsparticles-confetti';
 import { Airdrop } from '@/lib/airdrop';
 import { QueryClient } from '@cosmjs/stargate';
 import { getBatchClient } from '../hooks/cosmwasm';
-import { checkClaimed, claimAirdropMessage } from '../util/msg';
+import { checkClaimed, claimAirdropMessage, isLucky } from '../util/msg';
 import { fromMicro, getAddressTable, validateAddresses, validateAddressestwo } from '../util/addressConversion';
-
-//const AirdropContractAddress = "nois19kfv6wdsmudx58a2hsktvegvtuyc4rakpsfsxqgmzg26p8ph4yrsteche4";
-const AirdropContractAddress = "nois14wa2glah9t3c6x3cnfz2ys5t9er6zcrcvfvq8h0tfcv867q8n8tskvdplc";
 
 const colors = ["#0ef025", "#ff00f7", "#ff0022", "#0015fc", "#eeff00"];
 
@@ -116,7 +113,7 @@ const Home: NextPage = () => {
     //const addresses = validateAddresses(userAddrInj, userAddrJuno, userAddrStars, userAddrAura);
     const junoAddr = validateAddresses(userAddrJuno);
 
-    if (!junoAddr) {
+    if (!junoAddr || !batchClient) {
       return;
     }
 
@@ -132,11 +129,29 @@ const Home: NextPage = () => {
     //   'https://gist.githubusercontent.com/kaisbaccour/edf03e2486d1f6a609e2d8918cfcb4a9/raw/99ce180cc8e082615d0c010e0192d3d829693c48/aura-randdrop.json'
     // ];
 
+    const is_lucky = await isLucky({walletAddress: junoAddr, batchClient });
+
+    if (!is_lucky) {
+      setLoading(false);
+      toast.dismiss();
+      toast.error("No claim available");
+      return;
+    }
+
+    const has_claimed = await checkClaimed({walletAddress: junoAddr, batchClient});
+
+    if (has_claimed === true) {
+      setLoading(false);
+      toast.dismiss();
+      toast.error("Rand-drop already claimed");
+      return;
+    }
+
     const randDropData = await fetch('https://gist.githubusercontent.com/kaisbaccour/5a2f102ef476d533a3112b016aa45db4/raw/aa94b4d6682536ac518d1e98367b6bbc0eac5740/juno-randdrop.json');
 
     const junoData = await randDropData.json();
 
-    //const junoDrop = new Airdrop(junoData);
+    const junoDrop = new Airdrop(junoData);
 
     const userJunoDrop = junoData.find((obj) => obj.address === junoAddr);
 
@@ -145,12 +160,20 @@ const Home: NextPage = () => {
 
     if (userJunoDrop) {
       sprayConfetti(Date.now() + 1500);
-      setJunoAmt(String(userJunoDrop.amount));
+      const userAmt = String(userJunoDrop.amount * 3);
+      setJunoAmt(userAmt);
+      const proof = junoDrop.getMerkleProof({
+        address: junoAddr,
+        amount: userAmt
+      });
+      setMerkle(proof);
+      return;
     } else {
       toast.error("Address did not qualify");
       setStatus('noclaim');
       setJunoAmt("0");
       //resetAmounts();
+      return;
     }
 
   }
@@ -189,7 +212,7 @@ const Home: NextPage = () => {
         toast.dismiss();
         toast.error("Error claiming Rand-drop");
         toast.error(JSON.stringify(e.message));
-      })
+      });
   }
 
   const { walletAddress, signingClient, nickname, connectWallet, disconnect } =
@@ -258,8 +281,10 @@ const Home: NextPage = () => {
               style={{ objectFit: 'contain' }}
             />
           </div>
-          <div className="text-4xl fontx-mono pb-4 pt-0 w-4/6 flex justify-center">
+          <div className="text-4xl fontx-mono pb-4 pt-0 w-4/6 flex flex-col justify-center items-center gap-y-4">
+            <span>
             Uni Randdrop Checker
+            </span>
           </div>
           <div className="w-1/6 h-full flex justify-center items-center">
             <button
@@ -400,14 +425,14 @@ const Home: NextPage = () => {
                     {"Check"}
                   </span>
                 </button>
-                {/* <button 
-                  className={`px-4 py-2 rounded-lg border border-white/20 text-nois-white/50 hover:cursor-not-allowed`}
-                  onClick={() => toast.error("ERROR: Must Connect Wallet")}
+                <button 
+                  className={`${merkle.length < 1 ? "hidden" : "px-4 py-2 rounded-lg border border-white/20 text-nois-white/50 hover:cursor-not-allowed"} `}
+                  onClick={() => claimAirdrop()}
                 >
                   <span>
                     {"Claim"}
                   </span>
-                </button> */}
+                </button>
               </>
             )}
           </div>
